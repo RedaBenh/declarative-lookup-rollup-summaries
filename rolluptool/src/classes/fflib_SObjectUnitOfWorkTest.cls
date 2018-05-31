@@ -76,7 +76,7 @@ private with sharing class fflib_SObjectUnitOfWorkTest
 		// System.assertEquals(5 /* Oddly a setSavePoint consumes a DML */, Limits.getDmlStatements());
 
 		// Records to update
-		List<Opportunity> opps = [select Id, Name, (Select Id from OpportunityLineItems) from Opportunity where Name like 'UoW Test Name %' order by Name];
+		List<Opportunity> opps = [select Id, Name, (Select Id from OpportunityLineItems) from Opportunity];
 		
 		// Update some records with UnitOfWork
 		{
@@ -112,7 +112,7 @@ private with sharing class fflib_SObjectUnitOfWorkTest
 		// TODO: Need to re-instate this check with a better approach, as it is not possible when 
 		//       product triggers contribute to DML (e.g. in sample app Opportunity trigger)
 		// System.assertEquals(11, Limits.getDmlStatements());
-		opps = [select Id, Name, (Select Id, PricebookEntry.Product2.Name, Quantity, TotalPrice from OpportunityLineItems Order By PricebookEntry.Product2.Name) from Opportunity where Name like 'UoW Test Name %' order by Name];
+		opps = [select Id, Name, (Select Id, PricebookEntry.Product2.Name, Quantity, TotalPrice from OpportunityLineItems Order By PricebookEntry.Product2.Name) from Opportunity];
 		System.assertEquals(10, opps.size());
 		System.assertEquals('UoW Test Name 0 Changed', opps[0].Name);
 		System.assertEquals(2, opps[0].OpportunityLineItems.size());
@@ -139,7 +139,7 @@ private with sharing class fflib_SObjectUnitOfWorkTest
 		// TODO: Need to re-instate this check with a better approach, as it is not possible when 
 		//       product triggers contribute to DML (e.g. in sample app Opportunity trigger)
 		// System.assertEquals(15, Limits.getDmlStatements());
-		opps = [select Id, Name, (Select Id, PricebookEntry.Product2.Name, Quantity from OpportunityLineItems Order By PricebookEntry.Product2.Name) from Opportunity where Name like 'UoW Test Name %' order by Name];
+		opps = [select Id, Name, (Select Id, PricebookEntry.Product2.Name, Quantity from OpportunityLineItems Order By PricebookEntry.Product2.Name) from Opportunity];
 		List<Product2> prods = [Select Id from Product2 where Name = 'UoW Test Name 0 Changed : New Product'];
 		System.assertEquals(10, opps.size());
 		System.assertEquals('UoW Test Name 0 Changed', opps[0].Name);
@@ -151,7 +151,7 @@ private with sharing class fflib_SObjectUnitOfWorkTest
 	{
 		// Standard Assertions on tests data inserted by tests
 		String filter = prefix + ' Test Name %';
-		List<Opportunity> opps = [select Id, Name, (Select Id from OpportunityLineItems) from Opportunity where Name like :filter order by Name];
+		List<Opportunity> opps = [select Id, Name, (Select Id from OpportunityLineItems) from Opportunity];
 		System.assertEquals(10, opps.size());
 		System.assertEquals(1, opps[0].OpportunityLineItems.size());
 		System.assertEquals(2, opps[1].OpportunityLineItems.size());

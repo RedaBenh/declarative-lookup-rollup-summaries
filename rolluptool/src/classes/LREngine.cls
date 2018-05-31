@@ -408,7 +408,7 @@ public class LREngine {
             this.isMasterTypeCurrency = isCurrency(master.getType());
             this.isMasterTypeText = isText(master.getType());
             this.isDetailTypeText = isText(detail.getType());
-			this.isMasterTypeId = isIdOrReference(master.getType());
+            this.isMasterTypeId = isIdOrReference(master.getType());
             this.isDetailTypeId = isIdOrReference(detail.getType());
             // validate if field is good to work on later 
             validate();

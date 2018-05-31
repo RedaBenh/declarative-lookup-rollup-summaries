@@ -48,8 +48,9 @@ private with sharing class fflib_SObjectSelectorTest
 	{
 		// Inserting in reverse order so that we can test the order by of select 
 		List<Account> accountList = new List<Account> {
-			new Account(Name='TestAccount2',AccountNumber='A2',AnnualRevenue=12345.67),
-			new Account(Name='TestAccount1',AccountNumber='A1',AnnualRevenue=76543.21) };		
+			new Account(Name='TestAccount1',AccountNumber='A1',AnnualRevenue=76543.21),
+            new Account(Name='TestAccount2',AccountNumber='A2',AnnualRevenue=12345.67)
+                };		
 		insert accountList;		
 		Set<Id> idSet = new Set<Id>();
 		for(Account item : accountList)
@@ -73,8 +74,8 @@ private with sharing class fflib_SObjectSelectorTest
 	{
 		// Inserting in reverse order so that we can test the order by of select 
 		List<Account> accountList = new List<Account> {
-			new Account(Name='TestAccount2',AccountNumber='A2',AnnualRevenue=12345.67),
-			new Account(Name='TestAccount1',AccountNumber='A1',AnnualRevenue=76543.21) };		
+			new Account(Name='TestAccount1',AccountNumber='A1',AnnualRevenue=76543.21),
+            new Account(Name='TestAccount2',AccountNumber='A2',AnnualRevenue=12345.67)};
 		insert accountList;		
 		Set<Id> idSet = new Set<Id>();
 		for(Account item : accountList)
@@ -160,7 +161,7 @@ private with sharing class fflib_SObjectSelectorTest
 	{
 		Testfflib_SObjectSelector selector = new Testfflib_SObjectSelector();
 		String soql = selector.newQueryFactory().toSOQL();
-		Pattern p = Pattern.compile('SELECT (.*) FROM Account ORDER BY Name DESC NULLS FIRST , AnnualRevenue ASC NULLS FIRST ');
+		Pattern p = Pattern.compile('SELECT (.*) FROM Account ORDER BY Id DESC NULLS FIRST , AnnualRevenue ASC NULLS FIRST ');
 		Matcher m = p.matcher(soql);
 		System.assert(m.matches(), 'Generated SOQL does not match expected pattern. Here is the generated SOQL: ' + soql);
 		System.assertEquals(1, m.groupCount(), 'Unexpected number of groups captured.');
@@ -234,7 +235,7 @@ private with sharing class fflib_SObjectSelectorTest
 		
 		public override String getOrderBy()
 		{
-			return 'Name DESC, AnnualRevenue ASC';
+			return 'Id DESC, AnnualRevenue ASC';
 		}
 	}
 	
