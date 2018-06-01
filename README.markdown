@@ -11,7 +11,7 @@ Features Summary
 - Define filter criteria on rollups for example Rollup Amount on Opportunity onto Account for Closed Won
 - Supports Realtime, Scheduled and Developer API modes
 - Open source, available in code and managed package form.
-- Managed package has passed Salesforce Security Review and is Aloha enabled (does not consume app, tab limits)
+- Managed package has passed Salesforce Security Review and is Aloha enabled
 - **NEW** Supports Custom Metadata, rollups can be included in Change Sets and Packages for easier deployment
 
 Please refer to the blog posts below for more detailed information.
@@ -24,10 +24,17 @@ This is a community driven tool, please help support it, share your experiences 
 Documentation
 -------------
 
-The tool has been featured in a number of blog entries as it has evolved...
+In addition to the [Wiki](https://github.com/afawcett/declarative-lookup-rollup-summaries/wiki) the tool has been featured in a number of blog entries as it has evolved...
 
+**NOTE:** The links are in chronological order, if your new to the tool, read from the bottom upwards
+
+- [Monitoring your Scheduled Rollups via Report Subscriptions](https://www.dandonin.com/2017/05/24/automated-error-alerts-and-mass-delete-error-records/)
+- [Counting Tasks with DLRS](https://www.dandonin.com/2017/04/21/counting-tasks-with-dlrs/)
+- [Getting Started With DLRS](https://www.dandonin.com/2017/03/16/how-to-dlrs/)
+- [Refer to this for Schedule mode usage](https://github.com/afawcett/declarative-lookup-rollup-summaries/wiki/What-you-need-to-know-about-Scheduling-Rollups)
+- [Declarative Rollup Tool Summer (2016) Release](https://andyinthecloud.com/2016/06/19/declarative-rollup-tool-summer-release/)
 - [Rollups and Cross Object Formula Fields](http://andyinthecloud.com/2016/02/13/rollups-and-cross-object-formula-fields/)
-- [Packaging and Installing Rollups](https://github.com/afawcett/declarative-lookup-rollup-summaries)
+- [Packaging and Installing Rollups](https://andyinthecloud.com/2016/01/24/packaging-and-installing-rollups/)
 - [Declarative Lookup Rollup Summary Tool and Custom Metadata](http://andyinthecloud.com/2015/12/24/declarative-lookup-rollup-summary-tool-and-custom-metadata/)
 - [Declarative Lookup Rollup Summaries – Spring’15 Release](http://andyinthecloud.com/2015/02/16/declarative-lookup-rollup-summaries-tool-dlrs-spring15-release/)
 - [A Declarative Rollup Summary Tool for Force.com Lookup Relationships](https://developer.salesforce.com/page/Declarative_Rollup_Summary_Tool_for_Force.com_Lookup_Relationships)
@@ -44,6 +51,7 @@ width="420" height="315" border="10" /></a>
 Implementation Considerations
 -----------------------------
 
+- **Professional Edition**. Professional Edition is supported only when using Process Builder or a [Scheduled Full Recalculation](https://github.com/afawcett/declarative-lookup-rollup-summaries/wiki/What-you-need-to-know-about-Scheduling-Rollups). Ignore prompts to setup the Remote Site for Metadata API callouts, as this will not be needed. You can use either the new  Manage Lookup Rollup Summaries tab (recommended) or the older Lookup Rollup Summaries tab. Make to select Calculation Mode as Process Builder when setting up your rollup (this will not require an Apex Trigger deployment). Please note that record deletion is not captured using Process Builder. For more information on using Process Builder with this tool see [here](https://andyinthecloud.com/2015/02/16/declarative-lookup-rollup-summaries-tool-dlrs-spring15-release/).
 - **Check Existings Apex Tests.** This tool dynamically deploys Apex Triggers and Apex tests, please make sure your Sandbox and Production org tests are all fully working before you attempt to use this tool. Otherwise usage of this tool will be blocked until you resolve such errors. If you have an org with triggers on the sObject that will contain the roll up result, installation into sandbox is VERY HIGHLY recommended so that after Lookup Rollup Summary records are added/enabled, you should rerun all testmethods to ensure nothing has broken as your before/after update triggers on the parent sObject will re-execute.
 - **Existing Tests on Parent Objects**. This tool will update the indicated fields on your Parent objects when it senses activity on Child objects. Ensure an Apex Triggers you have written on your Parent objects are written with best practices around bulkification in mind. If in doubt be sure to perform significant testing.
 
@@ -54,10 +62,10 @@ Usage Information and Known Issues
 - **Deployment issues into Production**. This tool dynamically deploys a small trigger and test class to the org. This is subject to the same rules and compliances as as a regular human developer. The generate test class, can in some cases be to simplisitc to get code coverage, requiring at present a developer to assist with the deployment, especially to production. There is more details on how to look for this scenario and how to workaround it, as well as future thoughts [here](https://github.com/afawcett/declarative-lookup-rollup-summaries/wiki/Challenges-with-Code-Coverage).
 - **Volume Considerations**. For each rollup, there is a maximum of 50,000 child relation records that can be summarised each time child record/s insert/update/delete operations are made (which may process several configured rollups). The rollup processes children to rollup by their parent record relationship and an optional further filter if provided. Meaning so long as this relationship does not result in more than 50,000 child records per parent parent record it will be successful. Take a look at this [blog post](http://andyinthecloud.com/2014/02/09/new-release-spring14-declarative-rollup-summary-tool/) which describes some new configuration settings (see bottom of blog post) to help calibrate the tool when running the Scheduled or Calculate jobs to help work within the 50,000 row limit.
 - **Indexing Fields**. For performance reasons ensure the fields used are indexed (lookups are by default) and also any fields used in the filter criteria. This can be very important as without this, a full table scan will occur when the platform executes the SOQL and cause performance issues. For more information from Salesforce please see [here](http://wiki.developerforce.com/page/Best_Practices_for_Deployments_with_Large_Data_Volumes) and [here](http://blogs.developerforce.com/engineering/2013/02/force-com-soql-best-practices-nulls-and-formula-fields.html).
-- **Realtime Mode and Formula Fields**. When using the Realtime mode, Formula fields as fields to aggregate are not supported (validation will be added in a future release to block this). To work around this, either switch to Scheduled mode or in Relatime mode use a Workflow Field Update to copy the formula field value to a physical field and reference that.
+- **Realtime Mode and Formula Fields**. When using the Realtime mode, certain Formula field expressions need more consideration. If your formula field refereces other fields defined on the object the formula field is defined on, please state the fields these formulas reference in the Realtionship Field Criteria fields (the tool does not monitor changes in formula fields). If your formulas reference fields on related records (via lookup fields) see this [blog](https://andyinthecloud.com/2016/02/13/rollups-and-cross-object-formula-fields/). If your formula field uses formula functions that are date sensitive like YEAR the tool will not auto recacluate in realtime (as no field has changed). To work around this, either switch to Scheduled mode or in Relatime mode use a Workflow Field Update to copy the formula field value to a physical field and reference that.
 - **Sandbox Testing**. While the tool can be installed and enabled directly in production, sandbox testing is still strongly recommended.
-- **Professional Edition**. Professional Edition is not supported, due to the Metadata API used by the tool not being available in this edition.
 - **INVALID_SESSION_ID: Invalid Session ID found in SessionHeader: Illegal Session faultcode=sf:INVALID_SESSION_ID faultactor=**. This can occur when your using the Manage Child Trigger button or editing rollups via the Manage Lookup Rollup Summaries tab. Solution is to disable the 'Lock sessions to the IP address from which they they originated.' setting under Session Settings under Setup. Salesforce documentation notes the following 'This option can inhibit various applications and mobile devices.'. Note this issue only applies while configuration changes are being made with the tool, especially via the Manage Lookup Rollup Summaries (see release notes v2.0). Once rollups are configured this issue does not apply during rollup calculations.
+- **Schedule Mode Setup**. This is not so much a know issue, but a known source of confusion with the current tool. If you want to use the schedule mode features please read [this first](https://github.com/afawcett/declarative-lookup-rollup-summaries/wiki/What-you-need-to-know-about-Scheduling-Rollups)
 
 Please feel free to raise feedback and issues via the **Github Issues** page [here](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues).
 
@@ -66,10 +74,116 @@ Packaged Release History
 
 You can install a packaged version of the tool into your production org (sandbox testing as always recommended). Check the limatations and known issues above first! 
 
-**Latest Releaes Version 2.3**
-______________________________
+**Latest Release Version 2.11**
+_______________________________
 
-Package [Product URL](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tb0000000cBqJ), [Sandbox URL](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tb0000000cBqJ)
+Package [Production URL](https://login.salesforce.com/packaging/installPackage.apexp?p0=04t0N000000IyYr), [Sandbox URL](https://test.salesforce.com/packaging/installPackage.apexp?p0=04t0N000000IyYr)
+
+- Enhancement [OR clause in top level filter breaks SOQL query](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/631)
+- Enhancement [Upgrade to Latest API: New object are not available](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/627)
+- Bug [SObject type does not allow locking rows](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/619)
+- Enhancement [Remote Settings update](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/372)
+- Enhancement [Lightning Enterprise Edition](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/569)
+
+**Release Version 2.10**
+________________________
+
+Package [Production URL](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tb0000000UvwL), [Sandbox URL](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tb0000000UvwL)
+
+- Enhancement [Enhancement: Schedule calculate - don't DML update record if rollup value unchanged](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/547)
+- Enhancement [Known ordering for RollupCalculateJob records](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/518)
+- Enhancement [Can't aggregate Salesforce Files (ContentDocumentLink) as child object](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/433)
+- Enhancement [Reinstate support for Test Code field on Rollups using Custom Metadata](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/304)
+- Bug [Error When Adding a Note in SF Lightning Due to DLRS Trigger](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/558)
+- Bug [Calculate new roll up failing on "The rollup must be Active before you can run a Calculate job"](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/511)
+
+**UPGRADE NOTE:** If you access the Rollup definitions via the standard Salesforce Custom Metadata UI under the Setup menu. Make sure to remove 'Test Code (Depricated)' (small one) from the layout and add the new 'Test Code' field (large one). If you only ever use the Manage Rollup Summaries tab you do not need to worry about this. Also note that any test code placed in the original smaller field will be automatically migrated to the new field on next edit (via Manage Rollup Summaries tab).
+
+**Release Version 2.9**
+_______________________
+
+Package [Production URL](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tb0000000MXnE), [Sandbox URL](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tb0000000MXnE)
+
+- Enhancement [Support API 37.0 onwards objects. Update RollupController.cls to remove hard-coded API version references](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/505)
+- Enhancement [Update to new fflib and optimised selector code](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/476)
+- Enhancement [Enhancement - Button on the Summary Logs List View for deleting Logs](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/474)
+- Enhancement [Support for Currency Roll Ups with Community Portal Users](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/454)
+- Enhancement [Improve error message Lookup Rollup Summary 'X' is invalid, your org configuration may have changed](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/377)
+- Bug [Support WorkOrder. Deploy Trigger. Entity is not API accessible.](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/481)
+- Bug [Support AccountContactRelation. Deploy Trigger. Entity is not api accessible](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/438)
+- Bug [RollupServiceTestTrigger, RollupServiceTest4Trigger and RollupServiceTest5Trigger has not been deployed](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/365)
+- Bug [Support CaseComment Rollups, Cannot locate Apex Type for ID CaseComment](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/17)
+
+**IMPORTANT NOTES:** 
+- Please check your Rollup Calculate Job records and if needed (no jobs are actually running) delete them.
+- There is a new Delete Log button on the Summary Logs List View layout please add it
+
+**Release Version 2.8**
+_______________________
+
+Package [Production URL](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tb0000000MXkF), [Sandbox URL](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tb0000000MXkF)
+
+- Bug [Lookup Rollup Calculate Job records are not being deleted even after the Calculate Job finishes](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/460)
+- Bug [Help Text for Calculation Mode needs updating](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/350)
+- Bug [Account Trigger->Decimal to Integer Illegal Assignment](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/326)
+- Enhancement [Feature Request - the ability to set schedule dlrs job name](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/415)
+- Enhancement [Better messaging when scheduling jobs](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/353)
+
+**IMPORTANT NOTE:** Please check your Rollup Calculate Job records and if needed delete them.
+
+**Release Version 2.7**
+_______________________
+
+Package [Production URL](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tb0000000MXk5), [Sandbox URL](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tb0000000MXk5)
+
+- Bug [Validation Errors 'ENTITY_IS_DELETED' While Saving when Parent gets Deleted As Well](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/39)
+
+**Release Version 2.6**
+_______________________
+
+Package [Production URL](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tb0000000MXZG), [Sandbox URL](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tb0000000MXZG)
+
+- Bug [DLRS fails rollup on Checkbox when no records found](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/379) Thanks Wes Weingartner!
+- Bug [Developer Script Exception : Entity is not api accessible](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/360)
+- Bug [Lookup Rollup Calculate Jobs not Case-sensitive](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/347)
+
+**Release Version 2.5**
+_______________________
+
+Package [Production URL](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tb0000000MXVO), [Sandbox URL](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tb0000000MXVO)
+
+- Bug [After Delete trigger for merging fails when new dlrs added](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/371)
+- Bug [Should not need to mark Active to do a manual Calculation](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/359)
+- Bug [Apex Scheduler Day of Week Drop down is a day out](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/349)
+- Bug [Merging lead causes Permission to create dlrs__LookupRollupSummary__c error](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/345)
+- Enhancement [Support ContentNote rollups (upgraded to API 37.0)](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/351)
+
+**Release Version 2.4.2**
+_________________________
+
+Package [Production URL](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tb0000000ka9e), [Sandbox URL](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tb0000000ka9e)
+
+- Bug [Install failed 2.4 update - New dependency on LookupChild's Sharing mode in Apex Unit Test](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/344)
+
+**Release Version 2.4.1**
+_________________________
+
+Package [Production URL](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tb0000000ka90), [Sandbox URL](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tb0000000ka90)
+
+**Documentation:** See [Declarative Rollup Tool Summer (2016) Release](https://andyinthecloud.com/2016/06/19/declarative-rollup-tool-summer-release/)
+
+- Bug [Installation Issue - The user license doesn't allow the permission: Read All dlrs__LookupRollupCalculateJob__c](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/331)
+- Enhancement [Roll Up just for few number of records](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/315)
+- Enhancement [Support for rollups on Account when doing Merge Account](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/303)
+- Enhancement [Add support for ALL ROWS](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/267)
+- Enhancement [Scheduled Calculate Custom Settings](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/265)
+- Enhancement [Open Activities still associated to the Converted Lead](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/164)
+- Enhancement [Remove from Lookup Rollup Summary Schedule Items when Parent is deleted](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/147)
+
+**Version 2.3**
+_______________
+
+Package [Production URL](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tb0000000cBqJ), [Sandbox URL](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tb0000000cBqJ)
 
 - Bug [Attempt to de-reference a null object from RollupJob (as seen on Apex Jobs page)](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/318)
 - Bug [SP(), BR(), TB() not working in 2.2](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/291)
@@ -79,7 +193,7 @@ Package [Product URL](https://login.salesforce.com/packaging/installPackage.apex
 **Version 2.2**
 _______________
 
-Package [Product URL](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tb0000000cBh0), [Sandbox URL](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tb0000000cBh0)
+Package [Production URL](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tb0000000cBh0), [Sandbox URL](https://test.salesforce.com/packaging/installPackage.apexp?p0=04tb0000000cBh0)
 
 - Bug [multiple criteria fields don't work anymore.](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/281)
 - Enhancement [Add support for space & tab in concat delimiter](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/278) thanks to [jondavis9898](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues?q=is%3Aissue+is%3Aopen+author%3Ajondavis9898)
@@ -361,12 +475,4 @@ __________________
 Installing the Source Code (Developers)
 =======================================
 
-If you are a developer obtain the source code from this repository if you wish to develop it further and/or contribute to it. Click the button below to deploy the source code to your developer or sandbox org.
-
-<a href="https://githubsfdeploy.herokuapp.com?owner=afawcett&repo=declarative-lookup-rollup-summaries">
-  <img alt="Deploy to Salesforce"
-       src="https://raw.githubusercontent.com/afawcett/githubsfdeploy/master/src/main/webapp/resources/img/deploy.png">
-</a>
-
-**KNOWN INSTALL ISSUE** Sometimes the Permission Set files will not deploy, based on org differences, such as features enabled. If you encounter this problem, Clone the repo manually and use your IDE or Ant script to deploy without the Permission Sets. I will be looking into fixing this [issue](https://github.com/afawcett/declarative-lookup-rollup-summaries/issues/58) in the future.
-
+This project now uses Salesforce DX for development and packaging. Clone this org and deploy the code to a scratch org to develop and contribute back changes via Pull Requests. If you want to deploy the unmanaged version of this to your sandbox or production org you can use the Salesforce DX convert and deploy commands to do so. However the recommended deployment for these orgs is via the managed package links above.
